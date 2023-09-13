@@ -35,7 +35,7 @@ export const CDirectionalLight: React.FC<any> = ({ position, intensity }) => {
                 ]}
                 intensity={intensity}
                 castShadow={true}
-                shadow-mapSize={[4096 * 3, 4096 * 3]}
+                shadow-mapSize={[4096, 4096]}
             >
                 <orthographicCamera attach="shadow-camera" args={[-100, 100, 100, -100]} />
             </directionalLight>

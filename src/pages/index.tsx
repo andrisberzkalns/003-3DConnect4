@@ -10,8 +10,15 @@ import { Canvas } from '@react-three/fiber'
 import { BoardWithPieces } from "~/components/BoardWithPieces";
 import { BoardSelections } from "~/components/BoardSelections";
 import { Piece } from "~/components/Piece";
-
+import { getNextPieceHeight } from "~/utils/getNextPieceHeight";
 import { CSpotLight, CAmbientLight } from "~/components/Lights";
+// import { PieceInstance } from "~/components/Pieces/PieceInstance";
+import { EGameState, TGameData, EPlayer, ESquareState } from "~/utils/gameTypes";
+import { checkIsWin } from "~/utils/checkIsWin";
+
+const SETTINGS = {
+  SHADOW_QUALITY: 1 // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
+}
 
 export default function Home() {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
@@ -33,23 +40,48 @@ export default function Home() {
 }
 
 const Scene: React.FC = () => {
-  const playerTurnRef = React.useRef<boolean>(true);
-  const [gameState, setGameState] = React.useState<{playerTurn: boolean, board: number[][][]}>({
-    playerTurn: true,
-    board: [
-    [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-    [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-    [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-    [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-  ]});
+  const [gameData, setGameData] = React.useState<TGameData>({
+    state: EGameState.Playing,
+    turn: EPlayer.Light,
+    board: new Array(4).fill(new Array(4).fill(new Array(4).fill(ESquareState.Empty)))
+  });
 
   const addPiece = (positionVector: THREE.Vector2) => {
-    setGameState((prevState) => {
+    setGameData((prevState) => {
+      if (gameData.state !== EGameState.Playing) return prevState;
       const newState = JSON.parse(JSON.stringify(prevState));
-      const pieceHeight = newState.board[positionVector.x][positionVector.y].filter((piece) => piece !== 0).length;
+      const pieceHeight = getNextPieceHeight(newState, positionVector.x, positionVector.y);
       if (pieceHeight > 3) return prevState;
-      newState.board[positionVector.x][positionVector.y][pieceHeight] = !prevState.playerTurn ? 1 : 2;
-      newState.playerTurn = !prevState.playerTurn;
+      newState.board[positionVector.x][positionVector.y][pieceHeight] = prevState.turn == EPlayer.Light ? ESquareState.Light : ESquareState.Dark;
+      if (newState.turn == EPlayer.Light) {
+        newState.turn = EPlayer.Dark;
+      } else {
+        newState.turn = EPlayer.Light;
+      }
+
+      const isWin = checkIsWin(newState);
+      if (isWin) {
+        console.log("There is a win");
+        newState.state = isWin;
+      }
+
+      return newState;
+    });
+  }
+  console.log("gameData", gameData);
+
+  const setLightWin = () => {
+    setGameData((prevState) => {
+      const newState = JSON.parse(JSON.stringify(prevState));
+      newState.state = EGameState.LightWin;
+      return newState;
+    });
+  }
+
+  const setDarkWin = () => {
+    setGameData((prevState) => {
+      const newState = JSON.parse(JSON.stringify(prevState));
+      newState.state = EGameState.DarkWin;
       return newState;
     });
   }
@@ -97,19 +129,26 @@ const Scene: React.FC = () => {
       <React.Suspense fallback={null}>
         <BoardWithPieces/>
         {
-          gameState.board.map((row, i) => {
+          gameData.board.map((row, i) => {
             return row.map((col, j) => {
-              return col.map((piece, k) => {
-                // 0 - empty, 1 - light, 2 - dark
-                if (piece == 0) return (<></>);
-                return <Piece height={k} pos={new THREE.Vector2(i, j)} isDark={piece == 2}/>
+              return col.map((square, k) => {
+                if (square == ESquareState.Empty) return (<></>);
+                return <Piece pos={new THREE.Vector3(i, j, k)} isDark={
+                  gameData.state != EGameState.LightWin 
+                  && (
+                    gameData.state == EGameState.DarkWin
+                    || square == ESquareState.Dark
+                  )
+                }/>
               });
             })
           })
         }
-        <SoftShadows size={60} samples={8} focus={0.5}/>
+        {
+          SETTINGS.SHADOW_QUALITY > 1 && (<SoftShadows size={60} samples={8} focus={0.5}/>)
+        }
         {/* <BakeShadows /> */}
-        <BoardSelections addPiece={(positionVector: THREE.Vector2) => addPiece(positionVector)}/>
+        <BoardSelections addPiece={addPiece}/>
       </React.Suspense>
     </Canvas>
   )

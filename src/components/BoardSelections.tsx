@@ -2,8 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import { positionMap, getPos } from '~/components/PositionMap';
+import { useGLTF, useAnimations } from '@react-three/drei'
+import { getNextPieceHeight } from "~/utils/getNextPieceHeight";
+import { EGameState, TGameData, EPlayer, ESquareState } from "~/utils/gameTypes";
 
 export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> = (props) => {
+    const mouseRef = useRef<[number, number]>([0, 0]);
     let hovered = useRef<any|null>(null);
     let selected = useRef<string|null>(null);
     const { camera, scene } = useThree((state) => state);
@@ -11,8 +15,7 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
 
     const onMouseMove = (event: any) => {
         if (!camera) {
-            console.log(props);
-            console.log("no camera");
+            console.error('No camera loaded');
             return;
         }
         event.preventDefault();
@@ -40,7 +43,10 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
         }
     }
 
-    const onMouseClick = (event: any) => {
+    const onMouseUp = (event: MouseEvent) => {
+        // Cancel event if mouse moved
+        if (mouseRef.current[0] !== event.x || mouseRef.current[1] !== event.y) return;
+
         // Hide all selections that aren't the hovered one
         scene.children.forEach((child) => {
             if (child?.userData?.isSelection && hovered?.current?.userData?.id !== child?.userData?.id) child.visible = false;
@@ -62,13 +68,18 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
         }
     }
 
+    const onMouseDown = (event: MouseEvent) => {
+        mouseRef.current = [event.x, event.y];
+    }
 
     useEffect(() => {
         window.addEventListener('mousemove', onMouseMove, false);
-        window.addEventListener('click', onMouseClick, false);
+        window.addEventListener('mousedown', onMouseDown, false);
+        window.addEventListener('mouseup', onMouseUp, false);
         return () => {
             window.removeEventListener('mousemove', onMouseMove, false);
-            window.removeEventListener('click', onMouseClick, false);
+            window.removeEventListener('mousedown', onMouseDown, false);
+            window.removeEventListener('mouseup', onMouseUp, false);
         }
     }, [])
 
@@ -76,7 +87,7 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
         <>
             {
                 [...Array(4)].map((_, i) => {
-                    return [...Array(4)].map((_, j) => <Selection pos={new THREE.Vector2(i, j)} placeable={true} hovered={true}/>);
+                    return [...Array(4)].map((_, j) => <Selection pos={new THREE.Vector3(i, j, 0)}/>);
                 })
             }
         </>
@@ -84,18 +95,38 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
 }
 
 
-export const Selection: React.FC<{pos: THREE.Vector2, placeable: boolean, hovered: boolean}> = (props) => {
-    const { hovered, placeable } = props;
+export const Selection: React.FC<{pos: THREE.Vector3}> = (props) => {
+    const { pos } = props;
     const [clicked, click] = useState(false);
     const positions = getPos(props.pos.x, props.pos.y);
-
-    // const [hovered, hover] = useState(false);
+    //@ts-ignore
+    const { nodes, materials } = useGLTF('/assets/pieceAnimation.gltf') as GLTFResult
 
     return (
         <>
+            {/* <mesh
+                name="Piece"
+                geometry={nodes.Piece.geometry}
+                rotation={[Math.PI / 2, 0, 0]}
+                position={[positions.x, 0.43 + pos.height * 0.27, positions.y]}
+                scale={0.015}
+                castShadow
+                receiveShadow
+            >
+                <meshStandardMaterial
+                    attach="material"
+                    color={"#FFFFFF"}
+                    roughness={0.75}
+                    metalness={0.5}
+                    alphaTest={0.01}
+                    transparent={true}
+                    opacity={0.4}
+                />
+            </mesh> */}
+
             <mesh
                 visible={false}
-                userData={{ isSelection: true, isSelected: false, id: props.pos.x + ',' + props.pos.y }}
+                userData={{ isSelection: true, isSelected: false, id: pos.x + ',' + pos.y }}
                 position={[positions.x, 0.85, positions.y]}
                 rotation={[0, 0, 0]}
                 {...props}
@@ -113,9 +144,11 @@ export const Selection: React.FC<{pos: THREE.Vector2, placeable: boolean, hovere
                     metalness={0.5}
                     alphaTest={0.01}
                     transparent={true}
-                    opacity={hovered && placeable ? 0.4 : 0}
+                    opacity={0.4}
                 />
             </mesh>
         </>
     )
 }
+
+useGLTF.preload('/assets/pieceAnimation.gltf')

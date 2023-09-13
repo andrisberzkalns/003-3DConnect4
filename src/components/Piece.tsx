@@ -5,7 +5,8 @@ Command: npx gltfjsx@6.2.13 .\pieceAnimation.gltf --types
 
 import * as THREE from 'three'
 import React, { useEffect, useRef } from 'react'
-import { useGLTF, useAnimations } from '@react-three/drei'
+import { useThree } from '@react-three/fiber';
+import { useGLTF, useAnimations, PositionalAudio } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 import { positionMap, getPos } from '~/components/PositionMap';
 
@@ -18,18 +19,17 @@ type GLTFResult = GLTF & {
         Light: THREE.MeshPhysicalMaterial
     }
 }
-
 type ActionName = 'PieceAction'
 type GLTFActions = Record<ActionName, THREE.AnimationAction>
-
 type ContextType = Record<string, React.ForwardRefExoticComponent<JSX.IntrinsicElements['mesh']>>
 
-export const Piece = (props: JSX.IntrinsicElements['group'] & {height: number, pos: THREE.Vector2, isDark: boolean}) => {
-    const group = useRef<THREE.Group>()
+export const Piece = (props: JSX.IntrinsicElements['group'] & {pos: THREE.Vector3, isDark: boolean}) => {
+    const group = useRef<THREE.Group>(null)
     const { nodes, materials, animations } = useGLTF('/assets/pieceAnimation.gltf') as GLTFResult
-    const { actions, mixer } = useAnimations<GLTFActions>(animations, group)
+    const { mixer } = useAnimations<THREE.AnimationClip>(animations, group)
+
     useEffect(() => {
-        if (animations[0]) {
+        if (animations[0] && group.current) {
             const animation = mixer.clipAction(animations[0], group.current);
             animation.setLoop(THREE.LoopOnce, 1);
             animation.clampWhenFinished = true;
@@ -38,20 +38,18 @@ export const Piece = (props: JSX.IntrinsicElements['group'] & {height: number, p
         }
     });
 
-    // const positionRow = positionMap[props.pos.x];
-    // if (positionRow === undefined) {
-    //     return (<></>);
-    // }
-    // let position = positionRow[props.pos.y];
-    // if (position === undefined) {
-    //     position = new THREE.Vector2(0, 0);
-    // }
     const positions = getPos(props.pos.x, props.pos.y);
 
     return (
-        <group ref={group} {...props} dispose={null} position={[positions.x, 0.29 + (props.height * 0.27), positions.y]}>
+        <group ref={group} {...props} dispose={null} position={[positions.x, 0.29 + (props.pos.z * 0.27), positions.y]} rotation={[0,positions.x + positions.y + props.pos.z / 27 * 2 * Math.PI,0]}>
             <group name="Scene">
                 <mesh name="Piece" geometry={nodes.Piece.geometry} material={props.isDark ? materials.Dark : materials.Light} position={[0, 14.256, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.015} castShadow receiveShadow/>
+                <PositionalAudio 
+                    autoplay
+                    url="/assets/drop.ogg"
+                    distance={1}
+                    loop={false}
+                />
             </group>
         </group>
     )
