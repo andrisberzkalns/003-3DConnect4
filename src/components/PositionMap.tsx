@@ -46,7 +46,7 @@ export const getPos = (x: number, y: number) => {
     if (positionRow === undefined) {
         return new THREE.Vector2(0, 0);
     }
-    let position = positionRow[y];
+    const position = positionRow[y];
     if (position === undefined) {
         return new THREE.Vector2(0, 0);
     }
