@@ -16,7 +16,7 @@ export const checkIsWin = (data: TGameData): ({ result: EGameState.DarkWin | EGa
     const checkPlane = (plane: [ESquareState, THREE.Vector3][][]): { result: EGameState.DarkWin | EGameState.LightWin, winningStateIndex: number } | undefined => {
         // winningStates
         for (let i = 0; i < winningStates.length; i++) {
-            let winningState = winningStates[i];
+            const winningState = winningStates[i];
             if (!winningState) continue;
             // Check if light player has won
             const lightHasWon = winningState.filter((row, x) => {
@@ -59,13 +59,13 @@ export const checkIsWin = (data: TGameData): ({ result: EGameState.DarkWin | EGa
     }
 
     // Diagonals
-    let plane4: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
-    let plane5: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
+    const plane4: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
+    const plane5: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
     for (let z = 0; z < 4; z++) {
         // Rows and columns
-        let plane1: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
-        let plane2: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
-        let plane3: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
+        const plane1: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
+        const plane2: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
+        const plane3: [ESquareState, THREE.Vector3][][] = new Array(4).fill(0).map(() => new Array(4).fill(0).map(() => [ESquareState.Empty, new THREE.Vector3(0,0,0)]));
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 4; x++) {
                 plane1[x]![y] = [board[x]![y]![z]!, new THREE.Vector3(x,y,z)];

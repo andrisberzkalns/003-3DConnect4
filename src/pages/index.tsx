@@ -45,16 +45,16 @@ const Scene: React.FC = () => {
   const [gameData, setGameData] = React.useState<TGameData>({
     state: EGameState.Playing,
     turn: EPlayer.Light,
-    board: new Array(4).fill(new Array(4).fill(new Array(4).fill(ESquareState.Empty)))
+    board: Array.from({length: 4}).map(() => Array.from({length: 4}).map(() => Array.from({length: 4}).map(() => ESquareState.Empty)))
   });
 
   const addPiece = (positionVector: THREE.Vector2) => {
-    setGameData((prevState) => {
+    setGameData((prevState: TGameData) => {
       if (gameData.state !== EGameState.Playing && gameData.state != EGameState.Animating) return prevState;
-      const newState = JSON.parse(JSON.stringify(prevState));
+      const newState: TGameData = structuredClone(prevState);
       const pieceHeight = getNextPieceHeight(newState, positionVector.x, positionVector.y);
       if (pieceHeight > 3) return prevState;
-      newState.board[positionVector.x][positionVector.y][pieceHeight] = prevState.turn == EPlayer.Light ? ESquareState.Light : ESquareState.Dark;
+      newState.board[positionVector.x]![positionVector.y]![pieceHeight] = prevState.turn == EPlayer.Light ? ESquareState.Light : ESquareState.Dark;
       if (newState.turn == EPlayer.Light) {
         newState.turn = EPlayer.Dark;
       } else {
@@ -66,7 +66,7 @@ const Scene: React.FC = () => {
         console.log("There is a win");
         if (isWin.winningCoordinates) {
           isWin.winningCoordinates.forEach((coord) => {
-            newState.board[coord.x][coord.y][coord.z] = isWin.result == EGameState.LightWin ? ESquareState.LightHighlighted : ESquareState.DarkHighlighted;
+            newState.board[coord.x]![coord.y]![coord.z] = isWin.result == EGameState.LightWin ? ESquareState.LightHighlighted : ESquareState.DarkHighlighted;
           });
         }
         newState.state = isWin.result;
@@ -79,17 +79,17 @@ const Scene: React.FC = () => {
   const removePiece = (positionVector: THREE.Vector2) => {
     setGameData((prevState) => {
       if (gameData.state !== EGameState.Animating && gameData.state !== EGameState.Playing) return prevState;
-      const newState = JSON.parse(JSON.stringify(prevState));
+      const newState = structuredClone(prevState);
       const pieceHeight = getNextPieceHeight(newState, positionVector.x, positionVector.y);
       if (pieceHeight < 0) return prevState;
-      newState.board[positionVector.x][positionVector.y][pieceHeight - 1] = ESquareState.Empty;
+      newState.board[positionVector.x]![positionVector.y]![pieceHeight - 1] = ESquareState.Empty;
       return newState;
     });
   }
 
   const setLightWin = () => {
     setGameData((prevState) => {
-      const newState = JSON.parse(JSON.stringify(prevState));
+      const newState = structuredClone(prevState);
       newState.state = EGameState.LightWin;
       return newState;
     });
@@ -97,7 +97,7 @@ const Scene: React.FC = () => {
 
   const setDarkWin = () => {
     setGameData((prevState) => {
-      const newState = JSON.parse(JSON.stringify(prevState));
+      const newState = structuredClone(prevState);
       newState.state = EGameState.DarkWin;
       return newState;
     });
@@ -140,24 +140,14 @@ const Scene: React.FC = () => {
   return (
     <>
       <CSpotLight 
-        id={1}
-        position={{
-          x: 3,
-          y: 6,
-          z: 3,
-        }}
+        position={[3,6,3]}
         visible={true}
         color={"#FFDDB5"}
         intensity={100}
         castShadow={true}
       />
       <CSpotLight
-        id={2}
-        position={{
-          x: -3,
-          y: 6,
-          z: 3,
-        }}
+        position={[-3, 6, 3]}
         visible={true}
         color={"#FFDDB5"}
         intensity={100}
@@ -184,7 +174,7 @@ const Scene: React.FC = () => {
             return row.map((col, j) => {
               return col.map((square, k) => {
                 if (square == ESquareState.Empty) return (<></>);
-                return <Piece pos={new THREE.Vector3(i, j, k)} square={square}/>
+                return <Piece key={`${i}${j}${k}`} pos={new THREE.Vector3(i, j, k)} square={square}/>
               });
             })
           })
