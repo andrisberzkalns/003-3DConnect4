@@ -7,6 +7,7 @@ import { getNextPieceHeight } from "~/utils/getNextPieceHeight";
 import { EGameState, TGameData, EPlayer, ESquareState } from "~/utils/gameTypes";
 
 export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> = (props) => {
+    const { addPiece } = props;
     const mouseRef = useRef<[number, number]>([0, 0]);
     let hovered = useRef<any|null>(null);
     let selected = useRef<string|null>(null);
@@ -81,7 +82,7 @@ export const BoardSelections: React.FC<{addPiece: (a: THREE.Vector2) => void}> =
             window.removeEventListener('mousedown', onMouseDown, false);
             window.removeEventListener('mouseup', onMouseUp, false);
         }
-    }, [])
+    }, [addPiece]);
 
     return (
         <>

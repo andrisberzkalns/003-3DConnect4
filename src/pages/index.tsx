@@ -3,10 +3,10 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { useCallback } from "react";
 import * as THREE from 'three';
-import { CameraControls, Center, PerspectiveCamera, Stage, Stars, Text3D, useFont, Environment, useGLTF, useHelper, SoftShadows, MeshTransmissionMaterial, BakeShadows } from '@react-three/drei'
+import { CameraControls,  Center, PerspectiveCamera, Stage, Stars, Text3D, useFont, Environment, useGLTF, useHelper, SoftShadows, MeshTransmissionMaterial, BakeShadows } from '@react-three/drei'
 
 import { api } from "~/utils/api";
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { BoardWithPieces } from "~/components/BoardWithPieces";
 import { BoardSelections } from "~/components/BoardSelections";
 import { Piece } from "~/components/Piece";
@@ -32,7 +32,9 @@ export default function Home() {
       </Head>
       <main className="flex min-h-screen bg-gradient-to-b from-yellow-500 to-orange-900">
         <div className="w-screen h-screen">
-          <Scene/>
+          <Canvas shadows>
+            <Scene/>
+          </Canvas>
         </div>
       </main>
     </>
@@ -48,7 +50,7 @@ const Scene: React.FC = () => {
 
   const addPiece = (positionVector: THREE.Vector2) => {
     setGameData((prevState) => {
-      if (gameData.state !== EGameState.Playing) return prevState;
+      if (gameData.state !== EGameState.Playing && gameData.state != EGameState.Animating) return prevState;
       const newState = JSON.parse(JSON.stringify(prevState));
       const pieceHeight = getNextPieceHeight(newState, positionVector.x, positionVector.y);
       if (pieceHeight > 3) return prevState;
@@ -62,13 +64,28 @@ const Scene: React.FC = () => {
       const isWin = checkIsWin(newState);
       if (isWin) {
         console.log("There is a win");
-        newState.state = isWin;
+        if (isWin.winningCoordinates) {
+          isWin.winningCoordinates.forEach((coord) => {
+            newState.board[coord.x][coord.y][coord.z] = isWin.result == EGameState.LightWin ? ESquareState.LightHighlighted : ESquareState.DarkHighlighted;
+          });
+        }
+        newState.state = isWin.result;
       }
 
       return newState;
     });
   }
-  console.log("gameData", gameData);
+
+  const removePiece = (positionVector: THREE.Vector2) => {
+    setGameData((prevState) => {
+      if (gameData.state !== EGameState.Animating && gameData.state !== EGameState.Playing) return prevState;
+      const newState = JSON.parse(JSON.stringify(prevState));
+      const pieceHeight = getNextPieceHeight(newState, positionVector.x, positionVector.y);
+      if (pieceHeight < 0) return prevState;
+      newState.board[positionVector.x][positionVector.y][pieceHeight - 1] = ESquareState.Empty;
+      return newState;
+    });
+  }
 
   const setLightWin = () => {
     setGameData((prevState) => {
@@ -86,8 +103,42 @@ const Scene: React.FC = () => {
     });
   }
 
+  // useFrame((frame) => {
+  //   const { clock } = frame;
+  //   if (gameData.state !== EGameState.Animating) return;
+
+    // Lines add remove
+    // addPiece(new THREE.Vector2(Math.floor(clock.elapsedTime % 2 * 2), Math.floor(clock.elapsedTime / 4 % 2 * 2)));
+    // removePiece(new THREE.Vector2(Math.floor((clock.elapsedTime + 10) % 2 * 2), Math.floor((clock.elapsedTime + 10) / 4 % 2 * 2)));
+
+    // Random add remove
+    // addPiece(new THREE.Vector2(Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)));
+    // removePiece(new THREE.Vector2(Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)));
+
+    // Cross pattern add remove
+    // if (Math.floor(clock.elapsedTime) % 6 < 3) {
+    //   addPiece(new THREE.Vector2(0, 0));
+    //   addPiece(new THREE.Vector2(3, 3));
+    //   addPiece(new THREE.Vector2(0, 3));
+    //   addPiece(new THREE.Vector2(3, 0));
+    //   removePiece(new THREE.Vector2(1, 1));
+    //   removePiece(new THREE.Vector2(1, 2));
+    //   removePiece(new THREE.Vector2(2, 1));
+    //   removePiece(new THREE.Vector2(2, 2));
+    // } else {
+    //   addPiece(new THREE.Vector2(1, 1));
+    //   addPiece(new THREE.Vector2(2, 2));
+    //   addPiece(new THREE.Vector2(2, 1));
+    //   addPiece(new THREE.Vector2(1, 2));
+    //   removePiece(new THREE.Vector2(0, 0));
+    //   removePiece(new THREE.Vector2(3, 0));
+    //   removePiece(new THREE.Vector2(0, 3));
+    //   removePiece(new THREE.Vector2(3, 3));
+    // }
+  // });
+
   return (
-    <Canvas shadows>
+    <>
       <CSpotLight 
         id={1}
         position={{
@@ -133,13 +184,7 @@ const Scene: React.FC = () => {
             return row.map((col, j) => {
               return col.map((square, k) => {
                 if (square == ESquareState.Empty) return (<></>);
-                return <Piece pos={new THREE.Vector3(i, j, k)} isDark={
-                  gameData.state != EGameState.LightWin 
-                  && (
-                    gameData.state == EGameState.DarkWin
-                    || square == ESquareState.Dark
-                  )
-                }/>
+                return <Piece pos={new THREE.Vector3(i, j, k)} square={square}/>
               });
             })
           })
@@ -150,7 +195,7 @@ const Scene: React.FC = () => {
         {/* <BakeShadows /> */}
         <BoardSelections addPiece={addPiece}/>
       </React.Suspense>
-    </Canvas>
+    </>
   )
 }
 

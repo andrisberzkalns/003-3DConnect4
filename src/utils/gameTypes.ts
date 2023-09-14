@@ -1,5 +1,6 @@
 export enum EGameState {
     Playing,
+    Animating,
     LightWin,
     DarkWin,
 }
