@@ -42,6 +42,7 @@ export const api = createTRPCNext<AppRouter>({
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
         }),
+        // wsLink<AppRouter>({ client: wsClient }),
       ],
     };
   },

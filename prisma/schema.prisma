@@ -1,24 +1,76 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+enum GameState {
+    WAITINGFORPLAYERS
+    PLAYING
+    ANIMATING
+    LIGHTWIN
+    DARKWIN
+    ABANDONED
+}
+
+enum GameSquare {
+    EMPTY
+    LIGHT
+    DARK
+}
+
+enum GameType {
+    PVPLOCAL
+    PVPREMOTE
+    BOT
+}
+
+enum Turn {
+    LIGHT
+    DARK
+}
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  relationMode = "prisma"
+    // provider     = "mysql"
+    provider     = "postgresql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
 }
-
 
 generator client {
-  provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["multiSchema"]
 }
 
-model Example {
-    id        Int      @id @default(autoincrement())
-    name      String
+model Move {
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    turn      Turn
+    positionX Int
+    positionY Int
+    positionZ Int
+    gameId    String
+    game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-    @@index([name])
+    @@id([gameId, positionX, positionY, positionZ])
+    @@index([positionX, positionY, positionZ])
+    @@index([gameId])
+}
+
+model Game {
+    id          String    @id @default(uuid())
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    startedAt   DateTime?
+    state       GameState @default(WAITINGFORPLAYERS)
+    turn        Turn
+    moves       Move[]
+    type        GameType
+    host        User      @relation("Host", fields: [hostUserId], references: [id])
+    hostUserId  String
+    whiteUserId String?
+    blackUserId String?
+    whitePlayer User?     @relation("BlackGames", fields: [whiteUserId], references: [id])
+    blackPlayer User?     @relation("WhiteGames", fields: [blackUserId], references: [id])
+
+    @@index([whiteUserId])
+    @@index([blackUserId])
+    @@index([hostUserId])
 }
 
 // Necessary for Next auth
@@ -38,6 +90,7 @@ model Account {
     user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])
+    @@index([userId])
 }
 
 model Session {
@@ -46,16 +99,21 @@ model Session {
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String    @id @default(uuid())
     name          String?
     email         String?   @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
+    blackGames    Game[]    @relation("BlackGames")
+    whiteGames    Game[]    @relation("WhiteGames")
+    hostedGames   Game[]    @relation("Host")
 }
 
 model VerificationToken {
