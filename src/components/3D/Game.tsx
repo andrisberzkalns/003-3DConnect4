@@ -14,7 +14,7 @@ import { getNextPieceHeight } from "~/utils/getNextPieceHeight";
 import { CSpotLight, CAmbientLight } from "~/components/3D/Lights";
 // import { PieceInstance } from "~/components/Pieces/PieceInstance";
 import { GameState, Turn } from "@prisma/client";
-import { TGameData, ESquareState } from "~/utils/gameTypes";
+import { TGameData, ESquareState } from "~/types/game.types";
 import { checkIsWin } from "~/utils/checkIsWin";
 
 const SETTINGS = {

@@ -13,7 +13,7 @@ import {
 import { useGLTF, useAnimations, PositionalAudio } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { positionMap, getPos } from "~/components/3D/PositionMap";
-import { ESquareState } from "~/utils/gameTypes";
+import { ESquareState } from "~/types/game.types";
 
 type GLTFResult = GLTF & {
   nodes: {

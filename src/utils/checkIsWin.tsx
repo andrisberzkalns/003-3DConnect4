@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GameState } from "@prisma/client";
-import { TGameData, ESquareState } from "~/utils/gameTypes";
+import { TGameData, ESquareState } from "~/types/game.types";
 
 type checkIsWinReturnType =
   | {

@@ -11,7 +11,7 @@ import {
 } from "~/server/api/trpc";
 import * as THREE from "three";
 import { checkIsWin } from "~/utils/checkIsWin";
-import { ESquareState } from "~/utils/gameTypes";
+import { ESquareState } from "~/types/game.types";
 
 type GameListItem = {
   id: string;

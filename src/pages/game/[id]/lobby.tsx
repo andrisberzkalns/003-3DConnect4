@@ -10,7 +10,7 @@ import { Button } from "~/components/ui/button";
 import { Database } from "~/types/database.types";
 import { api } from "~/utils/api";
 import { GameState } from "@prisma/client";
-import { TGameData } from "~/utils/gameTypes";
+import { TGameData } from "~/types/game.types";
 
 const client = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

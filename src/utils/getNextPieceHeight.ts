@@ -1,4 +1,4 @@
-import type { TGameData } from "~/utils/gameTypes";
+import type { TGameData } from "~/types/game.types";
 
 export const getNextPieceHeight = (
   gameState: TGameData,
