@@ -9,7 +9,7 @@
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start",
-    "generateTypes": "npx supabase gen types typescript --project-id lzocyjtvmgvqpoqsepir > ./src/types/database.types.ts"
+    "generatetypes": "npx supabase gen types typescript --project-id lzocyjtvmgvqpoqsepir > ./src/types/database.types.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.1",
@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.44.2",
+    "@types/memoizee": "^0.4.9",
     "@types/node": "^18.16.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",

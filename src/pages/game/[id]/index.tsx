@@ -130,8 +130,8 @@ const GameContainer: React.FC<{ id: string }> = ({ id }) => {
 
   const topText = isGameEnd
     ? gameQuery.data?.state === GameState.LIGHTWIN
-      ? "White won!"
-      : "Black won!"
+      ? "Light won!"
+      : "Dark won!"
     : isMyTurn
     ? "Your turn"
     : "Waiting for opponent";

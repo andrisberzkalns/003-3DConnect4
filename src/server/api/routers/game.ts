@@ -11,7 +11,10 @@ import {
 } from "~/server/api/trpc";
 import * as THREE from "three";
 import { checkIsWin } from "~/utils/checkIsWin";
-import { ESquareState } from "~/types/game.types";
+import { ESquareState, TGameData } from "~/types/game.types";
+
+const hashBoard = new Map<string, number>();
+const hashNextMoves = new Map<string, { x: number; y: number; z: number }[]>();
 
 type GameListItem = {
   id: string;
@@ -44,7 +47,208 @@ const moveRatelimit = new Ratelimit({
 //   DARK,
 // }
 
+const getNextMoves = (
+  board: ESquareState[][][],
+): { x: number; y: number; z: number }[] => {
+  const nextMoves: { x: number; y: number; z: number }[] = [];
+
+  for (let x = 0; x < board.length; x++) {
+    const layer = board[x]!;
+    for (let y = 0; y < layer.length; y++) {
+      const row = layer[y]!;
+      for (let z = 0; z < row.length; z++) {
+        const square = row[z]!;
+        if (square === ESquareState.Empty) {
+          // Check that there is a piece below
+          if (row[z - 1] === ESquareState.Empty) {
+            continue;
+          }
+          nextMoves.push({ x, y, z });
+        }
+      }
+    }
+  }
+
+  return nextMoves;
+};
+
+const getScore = (
+  board: ESquareState[][][],
+  color: Turn,
+  depth: number,
+): number => {
+  // Recursive function that returns the score of the color
+  // Depth is the number of moves ahead to look
+
+  // Base case: depth = 0, return the score of the board
+  if (depth === 0) {
+    return 0;
+  }
+
+  // Get all possible next moves
+  const nextMoves = getHashNextMoves(board);
+
+  // If there are no next moves, return the score of the board
+  if (nextMoves.length === 0) {
+    return 0;
+  }
+
+  // Check if the board wins the game
+  const res = checkIsWin(board);
+  if (res?.result) {
+    return res.result === GameState.LIGHTWIN ? depth : -depth;
+  }
+
+  // Calculate the score of each possible next move
+  const nextMoveScores = nextMoves.map((move) => {
+    // Make a copy of the board
+    const newBoard = board.map((x) => x.map((y) => y.map((z) => z)));
+
+    // Make the next move
+    newBoard[move.x]![move.y]![move.z] =
+      color === Turn.LIGHT ? ESquareState.Light : ESquareState.Dark;
+
+    // Get the score of the next move
+    const score = getHashScore(
+      newBoard,
+      color === Turn.LIGHT ? Turn.DARK : Turn.LIGHT,
+      depth - 1,
+    );
+
+    return score;
+  });
+
+  // Get the sum of the scores
+  const sum = nextMoveScores.reduce((a, b) => a + b, 0)!;
+
+  // Return the average score
+  return sum / nextMoveScores.length;
+};
+
+const getHashScore = (
+  board: ESquareState[][][],
+  color: Turn,
+  depth: number,
+): number => {
+  const stringValue = JSON.stringify(board);
+  if (hashBoard.has(stringValue)) {
+    return hashBoard.get(stringValue)!;
+  }
+
+  const res = getScore(board, color, depth) || 0;
+  hashBoard.set(stringValue, res);
+  return res;
+};
+
+const getHashNextMoves = (board: ESquareState[][][]) => {
+  const stringValue = JSON.stringify(board);
+  if (hashNextMoves.has(stringValue)) {
+    return hashNextMoves.get(stringValue)!;
+  }
+
+  const res = getNextMoves(board);
+  hashNextMoves.set(stringValue, res);
+  return res;
+};
+
+const getNextMove = (
+  board: ESquareState[][][],
+  color: Turn,
+  depth = 2,
+): { x: number; y: number; z: number } => {
+  const nextMove = { x: 0, y: 0, z: 0 };
+
+  const nextMoves = getHashNextMoves(board);
+
+  // Clear next moves hash
+  hashNextMoves.clear();
+  // Clear score hash
+  hashBoard.clear();
+
+  // If there are no next moves, return the score of the board
+  if (nextMoves.length === 0) {
+    return nextMove;
+  }
+
+  // Calculate the score of each possible next move
+  const nextMoveScores = nextMoves.map((move) => {
+    // Make a copy of the board
+    const newBoard = board.map((x) => x.map((y) => y.map((z) => z)));
+
+    // Make the next move
+    newBoard[move.x]![move.y]![move.z] =
+      color === Turn.LIGHT ? ESquareState.Light : ESquareState.Dark;
+
+    // Get the score of the next move
+    const score = getHashScore(
+      newBoard,
+      color === Turn.LIGHT ? Turn.DARK : Turn.LIGHT,
+      depth,
+    );
+
+    return score;
+  });
+
+  if (color == Turn.LIGHT) {
+    // Get list of indexes of the max scores
+    const maxScores = Math.max(...nextMoveScores);
+    const maxScoreIndexes = nextMoveScores
+      .map((x, i) => (x === maxScores ? i : null))
+      .filter((x) => x !== null);
+
+    // Select random index
+    const maxScoreIndex =
+      maxScoreIndexes[Math.floor(Math.random() * maxScoreIndexes.length)]!;
+
+    // Return the move with the max score
+    return nextMoves[maxScoreIndex]!;
+  } else {
+    // Get list of indexes of the min scores
+    const minScores = Math.min(...nextMoveScores);
+    const minScoreIndexes = nextMoveScores
+      .map((x, i) => (x === minScores ? i : null))
+      .filter((x) => x !== null);
+
+    const minScoreIndex =
+      minScoreIndexes[Math.floor(Math.random() * minScoreIndexes.length)]!;
+
+    // Return the move with the min score
+    return nextMoves[minScoreIndex]!;
+  }
+};
+
 export const gameRouter = createTRPCRouter({
+  getBotMove: publicProcedure
+    .input(
+      z.object({
+        board: z.array(z.array(z.array(z.number()))),
+        color: z.enum([Turn.DARK, Turn.LIGHT]),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      const board = input.board.map((x) =>
+        x.map((y) =>
+          y.map((z) =>
+            z === 0
+              ? ESquareState.Empty
+              : z === 1
+              ? ESquareState.Light
+              : ESquareState.Dark,
+          ),
+        ),
+      );
+
+      const nextMove = getNextMove(board, input.color, 3);
+
+      const moveData = {
+        x: nextMove.x,
+        y: nextMove.y,
+        z: nextMove.z,
+      };
+
+      return moveData;
+    }),
+
   create: protectedProcedure
     .input(
       z.object({

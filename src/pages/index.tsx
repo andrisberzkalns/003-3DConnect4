@@ -65,8 +65,8 @@ export default function Home() {
     router.push("/game/pvb");
   };
 
-  const lpvp = () => {
-    router.push("/game/lpvp");
+  const pvp = () => {
+    router.push("/game/pvp");
   };
 
   const join = (id: string) => {
@@ -249,12 +249,8 @@ export default function Home() {
               Login / Register
             </Button>
           )}
-          <Button disabled={!canCreate} onClick={() => pvb()}>
-            Player vs Bot
-          </Button>
-          <Button disabled={!canCreate} onClick={() => lpvp()}>
-            Local Player vs Player
-          </Button>
+          <Button onClick={() => pvb()}>Player vs Bot</Button>
+          <Button onClick={() => pvp()}>Local Player vs Player</Button>
         </div>
 
         <div className="rounded-lg bg-white p-4">
