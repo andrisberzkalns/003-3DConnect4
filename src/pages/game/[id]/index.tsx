@@ -13,6 +13,7 @@ import { handleError } from "~/utils/handleError";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { Home } from "lucide-react";
+import GameLayout from "~/components/layouts/GameLayout";
 
 // const SETTINGS = {
 //   SHADOW_QUALITY: 1, // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
@@ -39,15 +40,6 @@ const GameContainer: React.FC<{ id: string }> = ({ id }) => {
       },
       onError: (e) => handleError(e),
     });
-
-  const playRecording = () => {
-    allRows.forEach((row, index) => {
-      console.log(row);
-      setTimeout(() => {
-        gameRef?.current?.addPiece(row.x, row.y, -1);
-      }, index * 15);
-    });
-  };
 
   useEffect(() => {
     if (!moves) return;
@@ -137,41 +129,20 @@ const GameContainer: React.FC<{ id: string }> = ({ id }) => {
     : "Waiting for opponent";
 
   return (
-    <>
-      <main className="flex min-h-screen bg-gradient-to-b from-yellow-500 to-orange-900">
-        <div className="flex h-screen flex-col items-center justify-center">
-          <div className="h-screen w-screen">
-            <Game
-              ref={gameRef}
-              onPlacePiece={(pos) =>
-                mutateMove({ id: id, x: pos.x, y: pos.y, z: pos.z })
-              }
-              canMove={!isGameEnd && isMyTurn}
-            />
-          </div>
-          {isGameEnd && (
-            <div className="z-19 absolute left-8 top-8">
-              <Button
-                type="submit"
-                className="w-full"
-                onClick={() => {
-                  void router.push("/");
-                }}
-              >
-                <Home className="mr-4" /> Menu
-              </Button>
-            </div>
-          )}
-          <p className="absolute top-8 text-center font-bold uppercase">
-            {topText}
-          </p>
-        </div>
-        {/* <div className="absolute">
-          <button onClick={() => gameRef?.current?.reset()}>Reset</button>
-          <button onClick={() => playRecording()}>Set perfect game</button>
-        </div> */}
-      </main>
-    </>
+    <GameLayout>
+      <div className="h-screen w-screen">
+        <Game
+          ref={gameRef}
+          onPlacePiece={(pos) =>
+            mutateMove({ id: id, x: pos.x, y: pos.y, z: pos.z })
+          }
+          canMove={!isGameEnd && isMyTurn}
+        />
+      </div>
+      <p className="absolute top-8 text-center font-bold uppercase">
+        {topText}
+      </p>
+    </GameLayout>
   );
 };
 

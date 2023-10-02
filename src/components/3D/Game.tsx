@@ -3,7 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { forwardRef, useImperativeHandle } from "react";
 import * as THREE from "three";
-import { CameraControls, SoftShadows } from "@react-three/drei";
+import { BakeShadows, CameraControls, SoftShadows } from "@react-three/drei";
 
 import { api } from "~/utils/api";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -19,7 +19,7 @@ import { checkIsWin } from "~/utils/checkIsWin";
 import { handleError } from "~/utils/handleError";
 
 const SETTINGS = {
-  SHADOW_QUALITY: 1, // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
+  SHADOW_QUALITY: 3, // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
 };
 
 export type GameRefType = {
@@ -206,30 +206,28 @@ const Game = forwardRef<
     return (
       <Canvas shadows>
         <CSpotLight
-          position={[3, 6, 3]}
+          position={[3, 3, 3]}
           visible={true}
           color={"#FFDDB5"}
-          intensity={100}
+          intensity={50}
           castShadow={true}
         />
         <CSpotLight
-          position={[-3, 6, 3]}
+          position={[-3, 4, 3]}
           visible={true}
           color={"#FFDDB5"}
-          intensity={100}
+          intensity={50}
           castShadow={true}
         />
-        <CAmbientLight color={"#FFDDB5"} intensity={0.5} />
 
-        {/* <PerspectiveCamera
-        makeDefault
-        position={[0, 0.8, 5]}
-        fov={75}
-        aspect={2}
-        near={0.1}
-        far={1000}
-      /> */}
-        <CameraControls />
+        <CAmbientLight color={"#FFDDB5"} intensity={0.7} />
+
+        <CameraControls
+          maxPolarAngle={Math.PI / 2}
+          truckSpeed={0}
+          minDistance={3}
+          maxDistance={15}
+        />
         <React.Suspense fallback={null}>
           <BoardWithPieces />
           {gameData.board.map((row, i) => {
@@ -248,9 +246,13 @@ const Game = forwardRef<
             });
           })}
           {SETTINGS.SHADOW_QUALITY > 1 && (
-            <SoftShadows size={60} samples={8} focus={0.5} />
+            <SoftShadows
+              size={60}
+              samples={SETTINGS.SHADOW_QUALITY >= 3 ? 16 : 8}
+              focus={0.5}
+            />
           )}
-          {/* <BakeShadows /> */}
+          {SETTINGS.SHADOW_QUALITY == 0 && <BakeShadows />}
           {canMove && <BoardSelections addPiece={onPlacePiece} />}
         </React.Suspense>
       </Canvas>
