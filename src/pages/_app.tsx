@@ -20,7 +20,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
           name="description"
           content="Play 3D Connect 4 game online for free. No download required."
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
       <Toaster position="top-center" />
       <Component {...pageProps} />
