@@ -22,23 +22,24 @@ const MyApp: AppType<{ session: Session | null }> = ({
           content="Play 3D Connect 4 game online for free. No download required."
         />
         <link rel="icon" href="/favicon.png" />
-        <Script
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=G-1D3S5SCDB0`}
-        />
-        <Script
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
+      </Head>
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=G-1D3S5SCDB0`}
+      />
+      <Script
+        id="gtag"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
 
               gtag('config', 'G-1D3S5SCDB0');
             `,
-          }}
-        />
-      </Head>
+        }}
+      />
       <Toaster position="top-center" />
       <Component {...pageProps} />
     </SessionProvider>
