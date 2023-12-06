@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Button } from "~/components/ui/button";
 import { Home } from "lucide-react";
 
-export default () => {
+const About = () => {
   const router = useRouter();
 
   return (
@@ -53,3 +53,5 @@ export default () => {
     </main>
   );
 };
+
+export default About;
