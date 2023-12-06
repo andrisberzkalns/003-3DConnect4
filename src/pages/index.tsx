@@ -42,6 +42,13 @@ export default function Home() {
 
   // Get current user
   const [games, setGames] = React.useState<GameData[]>([]);
+  const { mutate: mutateAbandon, isLoading: isAbandonLoading } =
+    api.game.abandon.useMutation({
+      onSuccess: async (gameId) => {
+        toast.success("Game abandoned.");
+      },
+      onError: (e) => handleError(e),
+    });
 
   const router = useRouter();
   const { data: session } = useSession();
@@ -230,7 +237,12 @@ export default function Home() {
               >
                 Rejoin my game
               </Button>
-              <Button className="ml-4 inline shadow-md">Abandon</Button>
+              <Button
+                className="ml-4 inline shadow-md"
+                onClick={() => mutateAbandon({ id: activeGame.id })}
+              >
+                Abandon
+              </Button>
             </div>
           )}
         </div>

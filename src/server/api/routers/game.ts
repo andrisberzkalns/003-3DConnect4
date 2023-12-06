@@ -1,18 +1,17 @@
-import { z } from "zod";
-import { Turn, GameState, GameType, Game, Move } from "@prisma/client";
-import { Redis } from "@upstash/redis";
-import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
+import { GameState, GameType, Turn } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { observable } from "@trpc/server/observable";
+import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
+import { Redis } from "@upstash/redis";
+import { z } from "zod";
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import * as THREE from "three";
+import { ESquareState } from "~/types/game.types";
 import { checkIsWin } from "~/utils/checkIsWin";
-import { ESquareState, TGameData } from "~/types/game.types";
 
+const BOT_MOVES_AHEAD = 3;
 const hashBoard = new Map<string, number>();
 const hashNextMoves = new Map<string, { x: number; y: number; z: number }[]>();
 
@@ -226,6 +225,7 @@ export const gameRouter = createTRPCRouter({
       }),
     )
     .mutation(({ ctx, input }) => {
+      console.log("getBotMove", input);
       const board = input.board.map((x) =>
         x.map((y) =>
           y.map((z) =>
@@ -238,7 +238,7 @@ export const gameRouter = createTRPCRouter({
         ),
       );
 
-      const nextMove = getNextMove(board, input.color, 3);
+      const nextMove = getNextMove(board, input.color, BOT_MOVES_AHEAD);
 
       const moveData = {
         x: nextMove.x,
@@ -318,10 +318,6 @@ export const gameRouter = createTRPCRouter({
       const game = await ctx.db.game.findUnique({ where: { id: input.id } });
       if (!game) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // Check if game is waiting for players
-      if (game.state !== GameState.PLAYING)
-        throw new TRPCError({ code: "BAD_REQUEST" });
-
       // Check if user is already in game
       if (
         game.whiteUserId !== ctx.session.user.id &&
@@ -329,22 +325,23 @@ export const gameRouter = createTRPCRouter({
       )
         throw new TRPCError({ code: "BAD_REQUEST" });
 
-      // Winning state
-      const winnerState =
-        game.whiteUserId === ctx.session.user.id
-          ? GameState.DARKWIN
-          : GameState.LIGHTWIN;
-
-      // Update game
-      const data = {
-        state: winnerState,
-      };
-      const updatedGame = await ctx.db.game.update({
-        where: { id: input.id },
-        data,
-      });
-
-      return updatedGame;
+      // If game is started, update game state
+      if (game.state == GameState.PLAYING) {
+        const data = {
+          state:
+            game.whiteUserId === ctx.session.user.id
+              ? GameState.DARKWIN
+              : GameState.LIGHTWIN,
+        };
+        await ctx.db.game.update({
+          where: { id: input.id },
+          data,
+        });
+      }
+      // If game is not started, delete game
+      else if (game.state == GameState.WAITINGFORPLAYERS) {
+        await ctx.db.game.delete({ where: { id: input.id } });
+      }
     }),
 
   getWaiting: publicProcedure.query(async ({ ctx }) => {
@@ -421,6 +418,7 @@ export const gameRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("move", input);
       const game = await ctx.db.game.findUnique({ where: { id: input.id } });
       if (!game) throw new TRPCError({ code: "NOT_FOUND" });
 

@@ -14,10 +14,20 @@ import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { Home } from "lucide-react";
 import GameLayout from "~/components/layouts/GameLayout";
-
+import z from "zod";
 // const SETTINGS = {
 //   SHADOW_QUALITY: 1, // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
 // };
+
+const payloadSchema = z.object({
+  eventType: z.string(),
+  new: z.object({
+    positionX: z.number(),
+    positionY: z.number(),
+    positionZ: z.number(),
+  }),
+});
+type payloadSchema = z.infer<typeof payloadSchema>;
 
 const client = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,6 +76,7 @@ const GameContainer: React.FC<{ id: string }> = ({ id }) => {
           filter: `id=eq.${id}`,
         },
         (payload: unknown) => {
+          const validatedPayload = payloadSchema.safeParse(payload);
           console.log("Change received!", payload);
           // const { data } = payload;
           // console.log(payload);
@@ -88,10 +99,13 @@ const GameContainer: React.FC<{ id: string }> = ({ id }) => {
           filter: `gameId=eq.${id}`,
         },
         (payload: unknown) => {
-          const { eventType, new: newMove } = payload as {
-            eventType: "INSERT" | "UPDATE" | "DELETE";
-            new: Move;
-          };
+          const validatedPayload = payloadSchema.safeParse(payload);
+          if (!validatedPayload.success) {
+            console.error(validatedPayload.error);
+            toast.error("Error parsing payload");
+            return;
+          }
+          const { eventType, new: newMove } = payload as payloadSchema;
 
           console.log("Change received!", payload);
           if (eventType === "INSERT") {

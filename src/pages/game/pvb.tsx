@@ -1,27 +1,24 @@
-import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { Game, GameRefType } from "~/components/3D/Game";
-import { allRows } from "~/utils/recordings/allRows";
-import { createClient } from "@supabase/supabase-js";
-import router, { useRouter } from "next/router";
-import { Database } from "~/types/database.types";
-import toast from "react-hot-toast";
-import { GameState, Move, Turn } from "@prisma/client";
 import { api } from "~/utils/api";
 import { handleError } from "~/utils/handleError";
-import { useSession } from "next-auth/react";
-import { Button } from "~/components/ui/button";
-import { Home } from "lucide-react";
 import GameLayout from "~/components/layouts/GameLayout";
-
-// const SETTINGS = {
-//   SHADOW_QUALITY: 1, // 0 - off, 1 - on, 2 - soft shadows, 3 - high quality soft shadows
-// };
+import { Turn } from "@prisma/client";
 
 const PVBGame: React.FC<{ id: string }> = ({ id }) => {
   const gameRef = React.useRef<GameRefType>(null);
-
+  const { mutate: mutateBotMove, isLoading: isLoadingBotMove } =
+    api.game.getBotMove.useMutation({
+      onSuccess: (move) => {
+        console.log(gameRef.current);
+        if (move) {
+          console.log("Got bot move", move);
+          gameRef.current?.addPiece(move.x, move.y, move.z);
+        }
+      },
+      onError: (e) => handleError(e),
+    });
   const [topText, setTopText] = useState("Light player to move");
   const [isGameEnd, setIsGameEnd] = useState(false);
 
@@ -33,10 +30,17 @@ const PVBGame: React.FC<{ id: string }> = ({ id }) => {
           onPlacePiece={(pos) => {
             gameRef.current?.addPiece(pos.x, pos.y, pos.z);
           }}
-          enableBot={true}
-          canMove={!isGameEnd}
-          onDarkMove={() => setTopText("Dark player to move")}
-          onLightMove={() => setTopText("Light player to move")}
+          canMove={!isGameEnd && !isLoadingBotMove}
+          onDarkMove={(board) => {
+            setTopText("Light player to move");
+          }}
+          onLightMove={(board) => {
+            setTopText("Bot is thinking...");
+            mutateBotMove({
+              board: board,
+              color: "LIGHT",
+            });
+          }}
           onDarkWin={() => setTopText("Dark player wins!")}
           onLightWin={() => setTopText("Light player wins!")}
           onWin={() => setIsGameEnd(true)}

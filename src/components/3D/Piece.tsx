@@ -4,7 +4,7 @@ Command: npx gltfjsx@6.2.13 .\pieceAnimation.gltf --types
 */
 
 import * as THREE from "three";
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import {
   useThree,
   MeshProps,
@@ -14,6 +14,7 @@ import { useGLTF, useAnimations, PositionalAudio } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { positionMap, getPos } from "~/components/3D/PositionMap";
 import { ESquareState } from "~/types/game.types";
+import { SettingsContext } from "~/contexts/settingsContext";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -37,12 +38,14 @@ export const Piece = (
     square: ESquareState;
   },
 ) => {
+  const soundRef = useRef<THREE.PositionalAudio>(null);
   const { square } = props;
   const group = useRef<THREE.Group>(null);
   const { nodes, materials, animations } = useGLTF(
     "/assets/pieceAnimation.gltf",
   ) as GLTFResult;
   const { mixer } = useAnimations<THREE.AnimationClip>(animations, group);
+  const settings = useContext(SettingsContext);
 
   const ESquareMaterialMap: {
     [key in ESquareState]: {
@@ -96,6 +99,12 @@ export const Piece = (
     }
   });
 
+  useEffect(() => {
+    if (soundRef.current && settings.soundEnabled) {
+      soundRef.current.play();
+    }
+  }, []);
+
   const positions = getPos(props.pos.x, props.pos.y);
 
   return (
@@ -130,12 +139,14 @@ export const Piece = (
             />
           )}
         </mesh>
-        <PositionalAudio
-          autoplay
-          url="/assets/drop.ogg"
-          distance={1}
-          loop={false}
-        />
+        {settings.soundEnabled && (
+          <PositionalAudio
+            ref={soundRef}
+            url="/assets/drop.ogg"
+            distance={1}
+            loop={false}
+          />
+        )}
       </group>
     </group>
   );
