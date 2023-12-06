@@ -68,6 +68,10 @@ export default function Home() {
     router.push("/game/create");
   };
 
+  const about = () => {
+    router.push("/about");
+  };
+
   const pvb = () => {
     router.push("/game/pvb");
   };
@@ -261,6 +265,7 @@ export default function Home() {
               Login / Register
             </Button>
           )}
+          <Button onClick={() => about()}>About</Button>
           <Button onClick={() => pvb()}>Player vs Bot</Button>
           <Button onClick={() => pvp()}>Local Player vs Player</Button>
         </div>
