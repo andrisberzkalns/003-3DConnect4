@@ -17,8 +17,8 @@ const PVPGame: React.FC<{ id: string }> = ({ id }) => {
           ref={gameRef}
           onPlacePiece={(pos) => gameRef.current?.addPiece(pos.x, pos.y, pos.z)}
           canMove={!isGameEnd}
-          onDarkMove={() => setTopText("Dark player to move")}
-          onLightMove={() => setTopText("Light player to move")}
+          onDarkMove={() => setTopText("Light player to move")}
+          onLightMove={() => setTopText("Dark player to move")}
           onDarkWin={() => setTopText("Dark player wins!")}
           onLightWin={() => setTopText("Light player wins!")}
           onWin={() => setIsGameEnd(true)}
