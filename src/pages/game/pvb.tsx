@@ -4,7 +4,6 @@ import { Game, GameRefType } from "~/components/3D/Game";
 import { api } from "~/utils/api";
 import { handleError } from "~/utils/handleError";
 import GameLayout from "~/components/layouts/GameLayout";
-import { Turn } from "@prisma/client";
 
 const PVBGame: React.FC<{ id: string }> = ({ id }) => {
   const gameRef = React.useRef<GameRefType>(null);
@@ -27,13 +26,9 @@ const PVBGame: React.FC<{ id: string }> = ({ id }) => {
       <div className="h-screen w-screen">
         <Game
           ref={gameRef}
-          onPlacePiece={(pos) => {
-            gameRef.current?.addPiece(pos.x, pos.y, pos.z);
-          }}
+          onPlacePiece={(pos) => gameRef.current?.addPiece(pos.x, pos.y, pos.z)}
           canMove={!isGameEnd && !isLoadingBotMove}
-          onDarkMove={(board) => {
-            setTopText("Light player to move");
-          }}
+          onDarkMove={() => setTopText("Light player to move")}
           onLightMove={(board) => {
             setTopText("Bot is thinking...");
             mutateBotMove({
