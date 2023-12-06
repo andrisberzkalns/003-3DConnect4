@@ -66,7 +66,7 @@ const Game = forwardRef<GameRefType, GameProps>((props, ref) => {
   });
 
   const addPiece = (positionVector: THREE.Vector3) => {
-    let prevState: TGameData = gameData;
+    const prevState: TGameData = gameData;
     if (prevState.state !== GameState.PLAYING) return prevState;
 
     const pieceHeight =
@@ -125,7 +125,7 @@ const Game = forwardRef<GameRefType, GameProps>((props, ref) => {
   };
 
   const removePiece = (positionVector: THREE.Vector2) => {
-    let prevState: TGameData = gameData;
+    const prevState: TGameData = gameData;
     if (
       gameData.state !== GameState.ANIMATING &&
       gameData.state !== GameState.PLAYING

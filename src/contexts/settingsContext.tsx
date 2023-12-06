@@ -15,10 +15,10 @@ type SettingnsContextType = {
 
 const SettingsContext = createContext<SettingnsContextType>({
   shadowQuality: "low",
-  setShadowQuality: () => {},
+  setShadowQuality: (quality) => quality,
   soundEnabled: true,
-  setSoundEnabled: () => {},
-  toggleSound: () => {},
+  setSoundEnabled: (enabled) => enabled,
+  toggleSound: () => true,
 });
 
 const SettingsProvider = ({ children }: { children: ReactNode }) => {

@@ -44,7 +44,7 @@ export default function Home() {
   const [games, setGames] = React.useState<GameData[]>([]);
   const { mutate: mutateAbandon, isLoading: isAbandonLoading } =
     api.game.abandon.useMutation({
-      onSuccess: async (gameId) => {
+      onSuccess: () => {
         toast.success("Game abandoned.");
       },
       onError: (e) => handleError(e),

@@ -40,7 +40,7 @@ export default function NavBar() {
   const settings = React.useContext(SettingsContext);
   const shadowQuality = settings.shadowQuality;
 
-  let defaultShadowQuality = shadowQualityMap[shadowQuality].value;
+  const defaultShadowQuality = shadowQualityMap[shadowQuality].value;
 
   return (
     <>
