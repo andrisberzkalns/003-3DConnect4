@@ -96,7 +96,7 @@ export default function GameLobby() {
               <Home className="mr-4" /> Menu
             </Button>
           </div>
-          <div className="rounded-2xl bg-white px-5 py-2 text-center">
+          <div className="rounded-2xl bg-white/20 px-5 py-2 text-center text-white outline outline-offset-2 outline-white/50">
             <p>Waiting for opponent...</p>
           </div>
         </div>

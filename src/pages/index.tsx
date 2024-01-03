@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "~/types/database.types";
 import { handleError } from "~/utils/handleError";
+import Footer from "~/components/Footer";
 
 const client = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -223,7 +224,7 @@ export default function Home() {
     <main className="bg-gradient-to-b from-yellow-500 to-orange-900">
       <div className="container grid min-h-screen grid-cols-1 place-content-start gap-8 lg:grid-cols-[29%_69%] lg:p-8">
         <div className="col-span-1 text-center lg:col-span-2">
-          <h1 className="p-4 text-2xl font-black text-white drop-shadow-lg">
+          <h1 className="animate-text mb-8 select-none bg-gradient-to-r from-purple-500 via-yellow-600 to-red-500 bg-clip-text text-7xl font-black text-transparent drop-shadow-md">
             3D Connect 4
           </h1>
           {activeGame && (
@@ -251,76 +252,82 @@ export default function Home() {
           )}
         </div>
 
-        <div className="flex flex-col gap-4 pt-4">
+        <div className="flex flex-col gap-4">
+          <Button onClick={() => pvb()}>Player vs Bot</Button>
+          {!!session && (
+            <Button onClick={() => createGame()}>
+              Online Player vs Player
+            </Button>
+          )}
+          <Button onClick={() => pvp()}>Local Player vs Player</Button>
+          <Button className="mt-8" onClick={() => about()}>
+            About
+          </Button>
           {session ? (
             <Button
-              className="border-1 mb-8"
+              className="border-1"
               onClick={() => void signOut()}
               variant="secondary"
             >
               Log out
             </Button>
           ) : (
-            <Button className="border-1 mb-8" onClick={() => void signIn()}>
+            <Button className="border-1" onClick={() => void signIn()}>
               Login / Register
             </Button>
           )}
-          <Button onClick={() => about()}>About</Button>
-          <Button onClick={() => pvb()}>Player vs Bot</Button>
-          <Button onClick={() => pvp()}>Local Player vs Player</Button>
         </div>
 
-        <div className="rounded-lg bg-white p-4">
-          {session && !isActiveGameLoading && (
+        {/* {session && !isActiveGameLoading && (
             <div className="grid  w-full flex-row">
               <Button disabled={!canCreate} onClick={() => createGame()}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create a game
               </Button>
             </div>
-          )}
+          )} */}
 
-          <Table>
-            <TableCaption>A list of games waiting to be played</TableCaption>
-            <TableHeader>
+        <Table className="rounded-lg bg-white p-4 outline outline-offset-2 outline-white/80">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]"></TableHead>
+              <TableHead>Play as</TableHead>
+              {/* <TableHead>Opponent</TableHead> */}
+              <TableHead className="text-right">Created at</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
               <TableRow>
-                <TableHead className="w-[100px]"></TableHead>
-                <TableHead>Play as</TableHead>
-                {/* <TableHead>Opponent</TableHead> */}
-                <TableHead className="text-right">Created at</TableHead>
+                <TableCell colSpan={4} className="text-center">
+                  Loading...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+            ) : (
+              !joinableGames?.length && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">
-                    Loading...
+                    No games found
                   </TableCell>
                 </TableRow>
-              ) : (
-                !joinableGames?.length && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      No games found
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
-              {joinableGames?.map((val, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">
-                    <Button
-                      disabled={!canJoin}
-                      title={!session ? "Must login to join" : "Join game"}
-                      onClick={() => join(val.id)}
-                    >
-                      Join
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    {val.whiteUserId ? Turn.DARK : Turn.LIGHT}
-                  </TableCell>
-                  {/* <TableCell className="flex object-center">
+              )
+            )}
+            {joinableGames?.map((val, index) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">
+                  <Button
+                    disabled={!canJoin}
+                    variant="secondary"
+                    title={!session ? "Must login to join" : "Join game"}
+                    onClick={() => join(val.id)}
+                  >
+                    Join
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  {val.whiteUserId ? Turn.DARK : Turn.LIGHT}
+                </TableCell>
+                {/* <TableCell className="flex object-center">
                     {val.hostUserId.image && (
                       <div className="inline-block">
                         <Avatar>
@@ -333,17 +340,17 @@ export default function Home() {
                       {val.hostUserId.name}
                     </div>
                   </TableCell> */}
-                  <TableCell className="text-right">
-                    {`${new Date(val.createdAt).toLocaleTimeString("en-UK", {
-                      hour12: false,
-                    })}`}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                <TableCell className="text-right">
+                  {`${new Date(val.createdAt).toLocaleTimeString("en-UK", {
+                    hour12: false,
+                  })}`}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
+      <Footer />
     </main>
   );
 }

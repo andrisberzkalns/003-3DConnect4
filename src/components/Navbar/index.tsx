@@ -49,7 +49,7 @@ export default function NavBar() {
           <Menu />
         </Button>
         {isOpen && (
-          <div className="mt-2 flex flex-col gap-2 rounded-xl rounded-tl-none bg-gray-900 bg-opacity-60 p-4">
+          <div className="mt-4 flex flex-col gap-4 rounded-xl rounded-tl-none bg-white/10 bg-opacity-60 p-4 outline outline-offset-2 outline-white/20 backdrop-blur">
             <Button
               className="w-full p-4"
               onClick={() => {
@@ -79,7 +79,7 @@ export default function NavBar() {
               <Share2 className="mr-4" />
               <p className="ml-2">Share</p>
             </Button>
-            <Label className="my-2 text-gray-300">Shadow quality</Label>
+            <Label className="my-2 text-white">Shadow quality</Label>
             <div className="flex flex-row gap-2">
               <Slider
                 defaultValue={[defaultShadowQuality]}

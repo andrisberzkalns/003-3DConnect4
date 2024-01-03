@@ -6,9 +6,11 @@ import GameLayout from "~/components/layouts/GameLayout";
 
 const PVPGame: React.FC<{ id: string }> = ({ id }) => {
   const gameRef = React.useRef<GameRefType>(null);
-
-  const [topText, setTopText] = useState("Light player to move");
-  const [isGameEnd, setIsGameEnd] = useState(false);
+  const [state, setState] = useState({
+    topText: "",
+    playerToMove: "LIGHT",
+    isGameEnd: false,
+  });
 
   return (
     <GameLayout>
@@ -16,16 +18,49 @@ const PVPGame: React.FC<{ id: string }> = ({ id }) => {
         <Game
           ref={gameRef}
           onPlacePiece={(pos) => gameRef.current?.addPiece(pos.x, pos.y, pos.z)}
-          canMove={!isGameEnd}
-          onDarkMove={() => setTopText("Light player to move")}
-          onLightMove={() => setTopText("Dark player to move")}
-          onDarkWin={() => setTopText("Dark player wins!")}
-          onLightWin={() => setTopText("Light player wins!")}
-          onWin={() => setIsGameEnd(true)}
+          canMove={!state.isGameEnd}
+          onDarkMove={() =>
+            setState((prevState) => ({
+              ...prevState,
+              topText: "",
+              playerToMove: "LIGHT",
+            }))
+          }
+          onLightMove={(board) => {
+            setState((prevState) => ({
+              ...prevState,
+              topText: "...",
+              playerToMove: "DARK",
+            }));
+          }}
+          onDarkWin={() =>
+            setState((prevState) => ({
+              ...prevState,
+              topText: "Dark player wins!",
+            }))
+          }
+          onLightWin={() =>
+            setState((prevState) => ({
+              ...prevState,
+              topText: "Light player wins!",
+            }))
+          }
+          onWin={() =>
+            setState((prevState) => ({ ...prevState, isGameEnd: true }))
+          }
         />
       </div>
+      {!state.isGameEnd && (
+        <div
+          className={`absolute top-8 h-8 w-8 rounded-2xl outline outline-2 outline-offset-2 ${
+            state.playerToMove === "LIGHT"
+              ? "bg-white outline-white/50"
+              : "bg-black outline-black/50"
+          }`}
+        ></div>
+      )}
       <p className="absolute top-8 text-center font-bold uppercase">
-        {topText}
+        {state.topText}
       </p>
     </GameLayout>
   );

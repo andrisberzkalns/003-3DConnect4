@@ -17,8 +17,8 @@ const About = () => {
           <Home />
         </Button>
       </div>
-      <div className="flex h-screen items-center justify-center p-8 ">
-        <div className="flex flex-col space-y-4 rounded-xl bg-black bg-opacity-20 p-8 text-white">
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col space-y-4 rounded-xl bg-white/10 bg-opacity-20 p-8 text-white outline outline-offset-2 outline-white/20">
           <h1 className="mb-4 text-3xl font-bold">About</h1>
           <p>
             This is a 3D version of the classic 4 in a row game. It is made with
