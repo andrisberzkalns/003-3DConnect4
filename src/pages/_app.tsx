@@ -24,6 +24,10 @@ const MyApp: AppType<{ session: Session | null }> = ({
             content="Play 3D Connect 4 game online for free. No download required."
           />
           <link rel="icon" href="/favicon.png" />
+          <meta
+            name="google-site-verification"
+            content="ZwyUoEn3ASeRvukRC3UJ-eRPoJ_Yy2y1xsy3hHf0AQI"
+          />
         </Head>
         <Script
           strategy="afterInteractive"

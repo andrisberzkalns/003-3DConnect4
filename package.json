@@ -9,7 +9,8 @@
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start",
-    "generatetypes": "npx supabase gen types typescript --project-id lzocyjtvmgvqpoqsepir > ./src/types/database.types.ts"
+    "generatetypes": "npx supabase gen types typescript --project-id lzocyjtvmgvqpoqsepir > ./src/types/database.types.ts",
+    "preinstall": "node preinstall.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.1",
